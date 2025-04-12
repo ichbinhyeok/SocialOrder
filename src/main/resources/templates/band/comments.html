@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>글 댓글 목록</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .comments-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .comment-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .comment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .profile-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+        .author-info {
+            flex-grow: 1;
+        }
+        .author-name {
+            font-weight: bold;
+            margin-bottom: 0;
+        }
+        .comment-time {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .comment-content {
+            margin-bottom: 10px;
+        }
+        .comment-footer {
+            font-size: 14px;
+            color: #6c757d;
+        }
+        .comment-photo {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .pagination-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .sort-options {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container comments-container">
+    <h1 class="text-center mb-4">글 댓글 목록</h1>
+
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <!-- 정렬 옵션 -->
+    <div class="sort-options">
+        <div class="btn-group" role="group">
+            <a th:href="@{/band/comments/list(band_key=${bandKey}, post_key=${postKey})}"
+               class="btn btn-outline-primary"
+               th:classappend="${sort == '+created_at' || sort == null ? 'active' : ''}">
+                <i class="bi bi-sort-down"></i> 오래된순
+            </a>
+            <a th:href="@{/band/comments/list(band_key=${bandKey}, post_key=${postKey}, sort='-created_at')}"
+               class="btn btn-outline-primary"
+               th:classappend="${sort == '-created_at' ? 'active' : ''}">
+                <i class="bi bi-sort-up"></i> 최신순
+            </a>
+        </div>
+    </div>
+
+    <!-- 댓글 목록 -->
+    <div th:if="${comments != null}">
+        <div th:if="${#lists.isEmpty(comments)}" class="text-center">
+            <div class="alert alert-info">등록된 댓글이 없습니다.</div>
+        </div>
+
+        <!-- 각 댓글 항목 -->
+        <div th:each="comment : ${comments}" class="comment-item">
+            <!-- 댓글 헤더 (작성자 정보) -->
+            <div class="comment-header">
+                <img th:if="${comment.author != null && comment.author.profile_image_url != null && !comment.author.profile_image_url.isEmpty()}"
+                     th:src="${comment.author.profile_image_url}"
+                     class="profile-image"
+                     alt="프로필 이미지">
+                <img th:unless="${comment.author != null && comment.author.profile_image_url != null && !comment.author.profile_image_url.isEmpty()}"
+                     src="/img/default-profile.png"
+                     class="profile-image"
+                     alt="기본 프로필 이미지">
+
+                <div class="author-info">
+                    <p class="author-name" th:text="${comment.author != null && comment.author.name != null ? comment.author.name : '알 수 없음'}">작성자 이름</p>
+                    <p class="comment-time" th:if="${comment.created_at != null}">
+                        <span th:text="${#dates.format(new java.util.Date(comment.created_at), 'yyyy-MM-dd HH:mm')}">작성 시간</span>
+                    </p>
+                </div>
+
+                <div th:if="${comment.emotion_count != null && comment.emotion_count > 0}" class="ms-2">
+                    <span class="badge bg-primary rounded-pill">
+                        <i class="bi bi-heart"></i>
+                        <span th:text="${comment.emotion_count}">0</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- 댓글 내용 -->
+            <div class="comment-content">
+                <p th:if="${comment.content != null}" th:text="${comment.content}">댓글 내용</p>
+                <p th:unless="${comment.content != null}" class="text-muted">내용 없음</p>
+
+                <!-- 음성 댓글 표시 -->
+                <div th:if="${comment.is_audio_included}" class="alert alert-info">
+                    <i class="bi bi-mic"></i> 음성 댓글입니다.
+                </div>
+
+                <!-- 댓글 사진 -->
+                <div th:if="${comment.photo != null && comment.photo.url != null}">
+                    <img th:src="${comment.photo.url}" class="comment-photo" alt="댓글 이미지">
+                </div>
+            </div>
+
+            <!-- 댓글 푸터 -->
+            <div class="comment-footer">
+                <small th:text="${'댓글 ID: ' + comment.comment_key}"></small>
+            </div>
+        </div>
+
+        <!-- 페이징 처리 -->
+        <div th:if="${paging != null && paging.next_params != null}" class="pagination-container">
+            <a th:href="@{/band/comments/list(band_key=${bandKey}, post_key=${postKey}, sort=${sort}, after=${paging.next_params.after})}"
+               class="btn btn-primary">
+                다음 페이지
+            </a>
+        </div>
+    </div>
+
+    <!-- 버튼 -->
+    <div class="text-center mt-4">
+        <a th:href="@{/band/posts(band_key=${bandKey})}" class="btn btn-secondary">글 목록으로</a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

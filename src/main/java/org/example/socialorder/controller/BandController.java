@@ -74,13 +74,19 @@ public class BandController {
             // 데이터 로깅 추가
             System.out.println("Posts Data: " + postsData);
 
+            // 포스트 항목의 구조를 상세히 로깅 (첫 번째 항목만)
+            if (postsData.get("items") != null && !((List<?>)postsData.get("items")).isEmpty()) {
+                Object firstPost = ((List<?>)postsData.get("items")).get(0);
+                System.out.println("First Post Structure: " + firstPost);
+            }
+
             // 모델에 데이터 추가
             model.addAttribute("bandKey", bandKey);
             model.addAttribute("posts", postsData.get("items"));
             model.addAttribute("paging", postsData.get("paging"));
 
-            //
-            return "band/simple-posts";
+            // 업데이트된 포스트 템플릿 사용
+            return "band/posts";
         } catch (Exception e) {
             e.printStackTrace(); // 스택 트레이스 출력
             model.addAttribute("error", "밴드 글 목록을 가져오는 중 오류가 발생했습니다: " + e.getMessage());

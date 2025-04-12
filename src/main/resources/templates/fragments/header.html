@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<!-- 헤더 Fragment -->
+<header th:fragment="header" class="header-container">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <!-- 로고 -->
+            <a class="navbar-brand d-flex align-items-center" href="/static">
+                <i class="bi bi-shop me-2"></i>
+                <span>소셜오더</span>
+            </a>
+
+            <!-- 모바일 토글 버튼 -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
+                    aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- 네비게이션 메뉴 -->
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${activeTab == 'home'} ? 'active' : ''" href="/static">
+                            <i class="bi bi-house-door"></i> 홈
+                        </a>
+                    </li>
+
+                    <!-- 밴드 드롭다운 -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" th:classappend="${activeTab == 'band'} ? 'active' : ''"
+                           href="#" id="bandDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-people"></i> 밴드
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="bandDropdown">
+                            <li>
+                                <a class="dropdown-item" th:classappend="${activeSubTab == 'band-list'} ? 'active' : ''"
+                                   href="/band/list">
+                                    <i class="bi bi-list-ul"></i> 밴드 목록
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" th:classappend="${activeSubTab == 'profile'} ? 'active' : ''"
+                                   href="/band/profile/show">
+                                    <i class="bi bi-person-badge"></i> 내 프로필
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- 상품 관리 -->
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${activeTab == 'products'} ? 'active' : ''" href="/products">
+                            <i class="bi bi-basket"></i> 상품 관리
+                        </a>
+                    </li>
+
+                    <!-- 주문 관리 -->
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${activeTab == 'orders'} ? 'active' : ''" href="/orders">
+                            <i class="bi bi-cart"></i> 주문 관리
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- 사용자 정보 및 로그아웃 -->
+                <div class="d-flex">
+                    <div class="dropdown" th:if="${session.accessToken != null}">
+                        <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center" type="button"
+                                id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle me-1"></i>
+                            <span>사용자</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li>
+                                <a class="dropdown-item" href="/band/profile/show">
+                                    <i class="bi bi-person"></i> 내 프로필
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="/settings">
+                                    <i class="bi bi-gear"></i> 설정
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="/oauth/logout">
+                                    <i class="bi bi-box-arrow-right"></i> 로그아웃
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- 로그인 버튼 (로그인되지 않은 경우) -->
+                    <a th:if="${session.accessToken == null}" href="/oauth/login"
+                       class="btn btn-outline-light d-flex align-items-center">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> 로그인
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 페이지 타이틀과 브레드크럼 -->
+    <div class="bg-light py-3" th:if="${pageTitle != null}">
+        <div class="container">
+            <h1 class="h4 mb-1" th:text="${pageTitle}">페이지 제목</h1>
+
+            <!-- 브레드크럼 (있는 경우) -->
+            <div th:if="${breadcrumbs != null}" class="breadcrumb-wrapper">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="/static"><i class="bi bi-house-door-fill"></i></a>
+                        </li>
+                        <li th:each="breadcrumb, iterStat : ${breadcrumbs}"
+                            th:class="'breadcrumb-item ' + ${iterStat.last ? 'active' : ''}">
+                            <a th:if="${!iterStat.last}" th:href="${breadcrumb.url}" th:text="${breadcrumb.title}">링크</a>
+                            <span th:if="${iterStat.last}" th:text="${breadcrumb.title}">현재</span>
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+</body>
+</html>

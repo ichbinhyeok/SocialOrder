@@ -1,161 +1,464 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
 <head>
-    <meta charset="UTF-8">
-    <title>글 댓글 목록</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <title>댓글 목록</title>
     <style>
-        .comments-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
+        .post-preview {
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #eee;
+        }
+        .post-preview-content {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: pre-line;
         }
         .comment-item {
-            margin-bottom: 20px;
-            padding: 15px;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
             border: 1px solid #eee;
-            border-radius: 8px;
-            background-color: #f9f9f9;
+            background-color: white;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .comment-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
         .comment-header {
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 0.75rem;
         }
-        .profile-image {
+        .comment-avatar {
             width: 40px;
             height: 40px;
             border-radius: 50%;
             object-fit: cover;
-            margin-right: 10px;
+            margin-right: 0.75rem;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .author-info {
-            flex-grow: 1;
-        }
-        .author-name {
-            font-weight: bold;
+        .comment-author {
+            font-weight: 600;
             margin-bottom: 0;
+            line-height: 1.2;
         }
         .comment-time {
-            font-size: 12px;
+            font-size: 0.8rem;
             color: #6c757d;
         }
         .comment-content {
-            margin-bottom: 10px;
-        }
-        .comment-footer {
-            font-size: 14px;
-            color: #6c757d;
+            white-space: pre-line;
+            margin-bottom: 0.75rem;
         }
         .comment-photo {
             max-width: 100%;
-            max-height: 300px;
-            border-radius: 4px;
-            margin-top: 10px;
+            max-height: 200px;
+            border-radius: 0.3rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
         }
-        .pagination-container {
-            margin-top: 20px;
-            text-align: center;
+        .comment-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #6c757d;
+            padding-top: 0.5rem;
+            border-top: 1px solid #f2f2f2;
+        }
+        .comment-meta {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .comment-action {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .comment-action:hover {
+            color: #0d6efd;
+        }
+        .comment-emotion {
+            display: flex;
+            align-items: center;
+            color: #6c757d;
+            transition: color 0.2s;
+        }
+        .comment-emotion.active {
+            color: #dc3545;
+        }
+        .comment-emotion:hover {
+            color: #dc3545;
+        }
+        .comment-emotion i {
+            margin-right: 0.35rem;
+        }
+        .comments-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .comments-title {
+            margin-bottom: 0;
         }
         .sort-options {
-            margin-bottom: 20px;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            border-radius: 0.5rem;
+            background-color: #f8f9fa;
+            border: 1px dashed #dee2e6;
+        }
+        .empty-state i {
+            font-size: 3rem;
+            color: #adb5bd;
+            margin-bottom: 1rem;
+        }
+        .audio-comment {
+            background-color: #e7f5ff;
+            padding: 0.75rem;
+            border-radius: 0.3rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+        .audio-comment i {
+            font-size: 1.5rem;
+            margin-right: 0.75rem;
+            color: #0d6efd;
+        }
+        .order-badge {
+            display: inline-block;
+            padding: 0.35em 0.65em;
+            font-size: 0.75em;
+            font-weight: 700;
+            color: #fff;
+            background-color: #198754;
+            border-radius: 0.25rem;
+            margin-left: 0.5rem;
+        }
+        .is-order {
+            border-left: 3px solid #198754;
         }
     </style>
 </head>
 <body>
-<div class="container comments-container">
-    <h1 class="text-center mb-4">글 댓글 목록</h1>
+<div layout:fragment="content">
+    <!-- 페이지 헤더 및 액션 버튼 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">댓글 목록</h1>
+            <p class="text-muted">글에 작성된 댓글을 확인해보세요</p>
+        </div>
+        <div>
+            <a th:href="@{/band/posts(band_key=${bandKey})}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> 글 목록으로
+            </a>
+        </div>
+    </div>
 
-    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+    <!-- 알림 메시지 -->
+    <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>
+        <span th:text="${message}">성공 메시지</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 
-    <!-- 정렬 옵션 -->
-    <div class="sort-options">
-        <div class="btn-group" role="group">
+    <!-- 에러 메시지 -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <span th:text="${error}">에러 메시지</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- 원본 게시글 미리보기 (컨트롤러에서 게시글 정보 추가 필요) -->
+    <div class="post-preview">
+        <h5 class="mb-3">원본 게시글</h5>
+        <p class="post-preview-content">게시글 내용이 여기에 표시됩니다. (실제 구현에서는 API를 통해 원본 게시글을 가져와 표시)</p>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div>
+                <a th:href="@{/band/posts(band_key=${bandKey})}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-eye"></i> 글 보기
+                </a>
+            </div>
+            <div>
+                    <span class="text-muted">
+                        <i class="bi bi-chat-left"></i> 댓글 <span th:text="${comments != null ? #lists.size(comments) : 0}">0</span>개
+                    </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 댓글 목록 헤더 -->
+    <div class="comments-header">
+        <h4 class="comments-title">댓글 <span th:text="${comments != null ? #lists.size(comments) : 0}" class="text-primary">0</span>개</h4>
+        <div class="sort-options">
             <a th:href="@{/band/comments/list(band_key=${bandKey}, post_key=${postKey})}"
-               class="btn btn-outline-primary"
-               th:classappend="${sort == '+created_at' || sort == null ? 'active' : ''}">
+               class="btn btn-sm"
+               th:classappend="${sort == '+created_at' || sort == null ? 'btn-primary' : 'btn-outline-primary'}">
                 <i class="bi bi-sort-down"></i> 오래된순
             </a>
             <a th:href="@{/band/comments/list(band_key=${bandKey}, post_key=${postKey}, sort='-created_at')}"
-               class="btn btn-outline-primary"
-               th:classappend="${sort == '-created_at' ? 'active' : ''}">
+               class="btn btn-sm"
+               th:classappend="${sort == '-created_at' ? 'btn-primary' : 'btn-outline-primary'}">
                 <i class="bi bi-sort-up"></i> 최신순
             </a>
         </div>
     </div>
 
+    <!-- 빈 상태 표시 -->
+    <div th:if="${comments == null || #lists.isEmpty(comments)}" class="empty-state">
+        <i class="bi bi-chat"></i>
+        <h4>댓글이 없습니다</h4>
+        <p class="text-muted">이 글에는 아직 댓글이 없습니다.</p>
+    </div>
+
     <!-- 댓글 목록 -->
-    <div th:if="${comments != null}">
-        <div th:if="${#lists.isEmpty(comments)}" class="text-center">
-            <div class="alert alert-info">등록된 댓글이 없습니다.</div>
-        </div>
-
-        <!-- 각 댓글 항목 -->
-        <div th:each="comment : ${comments}" class="comment-item">
-            <!-- 댓글 헤더 (작성자 정보) -->
+    <div th:if="${comments != null && !#lists.isEmpty(comments)}">
+        <!-- 각 댓글 아이템 -->
+        <div th:each="comment : ${comments}"
+             class="comment-item"
+             th:classappend="${comment.content != null && #strings.contains(comment.content, '주문') ? 'is-order' : ''}">
+            <!-- 댓글 헤더 -->
             <div class="comment-header">
-                <img th:if="${comment.author != null && comment.author.profile_image_url != null && !comment.author.profile_image_url.isEmpty()}"
+                <img th:if="${comment.author != null && comment.author.profile_image_url != null}"
                      th:src="${comment.author.profile_image_url}"
-                     class="profile-image"
+                     class="comment-avatar"
                      alt="프로필 이미지">
-                <img th:unless="${comment.author != null && comment.author.profile_image_url != null && !comment.author.profile_image_url.isEmpty()}"
+                <img th:unless="${comment.author != null && comment.author.profile_image_url != null}"
                      src="/img/default-profile.png"
-                     class="profile-image"
-                     alt="기본 프로필 이미지">
-
-                <div class="author-info">
-                    <p class="author-name" th:text="${comment.author != null && comment.author.name != null ? comment.author.name : '알 수 없음'}">작성자 이름</p>
+                     class="comment-avatar"
+                     alt="기본 프로필">
+                <div>
+                    <p class="comment-author" th:text="${comment.author != null ? comment.author.name : '알 수 없음'}">
+                        작성자 이름
+                    </p>
                     <p class="comment-time" th:if="${comment.created_at != null}">
-                        <span th:text="${#dates.format(new java.util.Date(comment.created_at), 'yyyy-MM-dd HH:mm')}">작성 시간</span>
+                        <i class="bi bi-clock"></i>
+                        <span th:text="${#dates.format(new java.util.Date(comment.created_at), 'yyyy-MM-dd HH:mm')}">
+                                작성 시간
+                            </span>
                     </p>
                 </div>
-
-                <div th:if="${comment.emotion_count != null && comment.emotion_count > 0}" class="ms-2">
-                    <span class="badge bg-primary rounded-pill">
-                        <i class="bi bi-heart"></i>
-                        <span th:text="${comment.emotion_count}">0</span>
-                    </span>
+                <!-- 주문 댓글 배지 (키워드 기반으로 임시 구현, 실제 로직은 추가 개발 필요) -->
+                <div class="ms-auto" th:if="${comment.content != null && #strings.contains(comment.content, '주문')}">
+                        <span class="order-badge">
+                            <i class="bi bi-cart"></i> 주문
+                        </span>
                 </div>
             </div>
 
             <!-- 댓글 내용 -->
             <div class="comment-content">
-                <p th:if="${comment.content != null}" th:text="${comment.content}">댓글 내용</p>
-                <p th:unless="${comment.content != null}" class="text-muted">내용 없음</p>
+                <p th:text="${comment.content != null ? comment.content : '내용 없음'}" class="mb-0">
+                    댓글 내용입니다...
+                </p>
+            </div>
 
-                <!-- 음성 댓글 표시 -->
-                <div th:if="${comment.is_audio_included}" class="alert alert-info">
-                    <i class="bi bi-mic"></i> 음성 댓글입니다.
+            <!-- 음성 댓글 표시 -->
+            <div th:if="${comment.is_audio_included}" class="audio-comment">
+                <i class="bi bi-mic-fill"></i>
+                <div>
+                    <strong>음성 댓글</strong>
+                    <p class="mb-0 text-muted">이 댓글에는 음성이 포함되어 있습니다.</p>
                 </div>
+            </div>
 
-                <!-- 댓글 사진 -->
-                <div th:if="${comment.photo != null && comment.photo.url != null}">
-                    <img th:src="${comment.photo.url}" class="comment-photo" alt="댓글 이미지">
-                </div>
+            <!-- 댓글 사진 -->
+            <div th:if="${comment.photo != null && comment.photo.url != null}">
+                <img th:src="${comment.photo.url}"
+                     class="comment-photo"
+                     alt="댓글 이미지"
+                     data-bs-toggle="modal"
+                     data-bs-target="#imageModal">
             </div>
 
             <!-- 댓글 푸터 -->
             <div class="comment-footer">
-                <small th:text="${'댓글 ID: ' + comment.comment_key}"></small>
+                <div class="comment-meta">
+                    <!-- 공감 버튼 -->
+                    <span class="comment-emotion" th:classappend="${comment.emotion_count != null && comment.emotion_count > 0 ? 'active' : ''}">
+                            <i class="bi bi-heart"></i>
+                            <span th:text="${comment.emotion_count != null ? comment.emotion_count : 0}">0</span>
+                        </span>
+
+                    <!-- 댓글 ID -->
+                    <span>
+                            <i class="bi bi-hash"></i>
+                            <span th:text="${comment.comment_key}">ID</span>
+                        </span>
+                </div>
+
+                <!-- 액션 버튼 -->
+                <div class="comment-actions">
+                        <span class="comment-action me-2" data-action="reply">
+                            <i class="bi bi-reply"></i> 답글
+                        </span>
+                    <span class="comment-action"
+                          th:if="${comment.content != null && #strings.contains(comment.content, '주문')}"
+                          data-action="process">
+                            <i class="bi bi-cart"></i> 주문 처리
+                        </span>
+                </div>
             </div>
         </div>
 
-        <!-- 페이징 처리 -->
-        <div th:if="${paging != null && paging.next_params != null}" class="pagination-container">
+        <!-- 페이지네이션 -->
+        <div th:if="${paging != null && paging.next_params != null}" class="d-flex justify-content-center mt-4">
             <a th:href="@{/band/comments/list(band_key=${bandKey}, post_key=${postKey}, sort=${sort}, after=${paging.next_params.after})}"
                class="btn btn-primary">
-                다음 페이지
+                <i class="bi bi-chevron-down"></i> 더 보기
             </a>
         </div>
     </div>
 
-    <!-- 버튼 -->
-    <div class="text-center mt-4">
-        <a th:href="@{/band/posts(band_key=${bandKey})}" class="btn btn-secondary">글 목록으로</a>
+    <!-- 이미지 모달 -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel">이미지 보기</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalImage" src="" class="img-fluid" alt="확대 이미지">
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- 주문 처리 모달 (실제 구현에서 추가) -->
+    <div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="orderModalLabel">주문 처리</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="orderForm">
+                        <div class="mb-3">
+                            <label for="orderComment" class="form-label">댓글 내용</label>
+                            <textarea class="form-control" id="orderComment" rows="3" readonly></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="orderCustomer" class="form-label">고객명</label>
+                            <input type="text" class="form-control" id="orderCustomer">
+                        </div>
+                        <div class="mb-3">
+                            <label for="orderProduct" class="form-label">상품</label>
+                            <select class="form-select" id="orderProduct">
+                                <option selected>상품을 선택하세요</option>
+                                <option value="1">상품1</option>
+                                <option value="2">상품2</option>
+                                <option value="3">상품3</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="orderQuantity" class="form-label">수량</label>
+                            <input type="number" class="form-control" id="orderQuantity" min="1" value="1">
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="orderPickupAfterSix">
+                            <label class="form-check-label" for="orderPickupAfterSix">6시 이후 픽업</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" id="saveOrder">주문 저장</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 스크롤 상단 버튼 -->
+    <button id="backToTop" class="btn btn-primary btn-sm position-fixed bottom-0 end-0 m-4" style="display: none;">
+        <i class="bi bi-arrow-up"></i>
+    </button>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- 페이지별 스크립트 -->
+<th:block layout:fragment="script">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 스크롤 상단 버튼 표시/숨김 처리
+            const backToTopBtn = document.getElementById('backToTop');
+
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 300) {
+                    backToTopBtn.style.display = 'block';
+                } else {
+                    backToTopBtn.style.display = 'none';
+                }
+            });
+
+            backToTopBtn.addEventListener('click', function() {
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            });
+
+            // 이미지 모달 설정
+            const commentPhotos = document.querySelectorAll('.comment-photo');
+            const modalImage = document.getElementById('modalImage');
+
+            commentPhotos.forEach(function(photo) {
+                photo.addEventListener('click', function() {
+                    modalImage.src = this.src;
+                });
+            });
+
+            // 주문 처리 액션 설정
+            const orderActions = document.querySelectorAll('.comment-action[data-action="process"]');
+            const orderModal = new bootstrap.Modal(document.getElementById('orderModal'));
+            const orderComment = document.getElementById('orderComment');
+
+            orderActions.forEach(function(action) {
+                action.addEventListener('click', function() {
+                    // 해당 댓글의 내용 가져오기
+                    const commentItem = this.closest('.comment-item');
+                    const commentContent = commentItem.querySelector('.comment-content p').textContent;
+
+                    // 모달에 댓글 내용 설정
+                    orderComment.value = commentContent.trim();
+
+                    // 모달 표시
+                    orderModal.show();
+                });
+            });
+
+            // 주문 저장 버튼 클릭 처리
+            const saveOrderBtn = document.getElementById('saveOrder');
+
+            saveOrderBtn.addEventListener('click', function() {
+                // 여기에 주문 저장 로직 추가
+                alert('주문이 저장되었습니다.'); // 실제 구현에서는 API 호출로 변경
+                orderModal.hide();
+            });
+
+            // 답글 기능 (실제 구현 필요)
+            const replyActions = document.querySelectorAll('.comment-action[data-action="reply"]');
+
+            replyActions.forEach(function(action) {
+                action.addEventListener('click', function() {
+                    // 실제 구현에서는 답글 폼 표시 또는 모달 표시
+                    alert('답글 기능은 개발 중입니다.');
+                });
+            });
+        });
+    </script>
+</th:block>
 </body>
 </html>

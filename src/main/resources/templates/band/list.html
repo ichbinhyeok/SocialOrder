@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>내 밴드 목록</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <style>
+        .band-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .band-card {
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        .band-card:hover {
+            transform: translateY(-5px);
+        }
+        .band-cover {
+            height: 180px;
+            object-fit: cover;
+        }
+        .member-count {
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+<div class="container band-container">
+    <h1 class="text-center mb-4">내 밴드 목록</h1>
+
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div th:if="${bandList}" class="row">
+        <div th:if="${bandList.isEmpty()}" class="col-12 text-center">
+            <div class="alert alert-info">
+                가입한 밴드가 없습니다.
+            </div>
+        </div>
+
+        <div th:each="band : ${bandList}" class="col-md-4 mb-4">
+            <div class="card band-card h-100">
+                <img th:if="${band.cover}" th:src="${band.cover}" class="card-img-top band-cover" alt="밴드 커버">
+                <div th:unless="${band.cover}" class="card-img-top band-cover bg-light d-flex align-items-center justify-content-center">
+                    <span class="text-muted">커버 이미지 없음</span>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title" th:text="${band.name}">밴드 이름</h5>
+                    <p class="card-text member-count">
+                        멤버 <span th:text="${band.member_count}">0</span>명
+                    </p>
+                    <a th:href="@{/band/detail(band_key=${band.band_key})}" class="btn btn-primary">상세 보기</a>
+                    <a th:href="@{/band/posts(band_key=${band.band_key})}" class="btn btn-primary">글 목록 보기</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="/band/profile/show" class="btn btn-secondary">내 프로필</a>
+        <a href="/oauth/logout" class="btn btn-outline-danger ms-2">로그아웃</a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
